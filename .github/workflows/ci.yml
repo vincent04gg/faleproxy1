@@ -37,8 +37,8 @@ jobs:
         
   deploy-preview:
     needs: test
-    # Deploy preview for pull requests when tests pass
-    if: github.event_name == 'pull_request' && success()
+    # Deploy preview for pull requests and main branch pushes when tests pass
+    if: (github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && success()
     runs-on: ubuntu-latest
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
