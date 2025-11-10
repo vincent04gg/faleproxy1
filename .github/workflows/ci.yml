@@ -37,6 +37,9 @@ jobs:
         
   deploy:
     needs: test
+    # Only deploy to production if:
+    # 1. We're on main/master branch AND
+    # 2. All test jobs (including all matrix jobs) passed successfully
     if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && success()
     runs-on: ubuntu-latest
     
