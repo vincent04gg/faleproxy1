@@ -35,7 +35,36 @@ jobs:
         name: coverage-report-${{ matrix.node-version }}
         path: coverage/
         
-  deploy:
+  deploy-preview:
+    needs: test
+    # Deploy preview for pull requests when tests pass
+    if: github.event_name == 'pull_request' && success()
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+        
+    - name: Pull Vercel Environment Information
+      run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        
+    - name: Build Project Artifacts
+      run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        
+    - name: Deploy Preview to Vercel
+      run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  deploy-production:
     needs: test
     # Only deploy to production if:
     # 1. We're on main/master branch AND
@@ -53,12 +82,12 @@ jobs:
         
     - name: Install Vercel CLI
       run: npm install --global vercel@latest
-      
+        
     - name: Pull Vercel Environment Information
       run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      
+        
     - name: Build Project Artifacts
       run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      
+        
     - name: Deploy Project Artifacts to Vercel
       run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
